@@ -1,10 +1,14 @@
 from datetime import date, datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
-from sqlalchemy import Numeric, Date, DateTime, Integer, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey, Numeric, Date, DateTime, Integer, String, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+if TYPE_CHECKING:
+    from app.models.category import Category
+    from app.models.user import User
 
 
 class Expense(Base):
@@ -15,9 +19,16 @@ class Expense(Base):
         primary_key=True,
         autoincrement=True
     )
-
-    user_id: Mapped[str] = mapped_column(
-        String(100),
+   # Foreign Keys
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    category_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("categories.id", ondelete="RESTRICT"),
         nullable=False,
         index=True
     )
@@ -32,11 +43,7 @@ class Expense(Base):
         nullable=False
     )
 
-    category: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-        index=True
-    )
+    
 
     payment_method: Mapped[str] = mapped_column(
         String(50),
@@ -61,3 +68,10 @@ class Expense(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+   
+
+    # ORM Relationships (Python Objects Access)
+    user: Mapped["User"] = relationship("User", back_populates="expenses")
+    category: Mapped["Category"] = relationship("Category", back_populates="expenses")
+

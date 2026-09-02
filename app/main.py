@@ -1,9 +1,15 @@
 from contextlib import asynccontextmanager
-from fastapi import  FastAPI
+from fastapi import  FastAPI ,status
+import app.models  # Ensures all ORM mappers are loaded on startup
 
-
+# Database Engine
 from app.database import engine,Base
+
+# Routers Import
+from app.routers.auth import auth_router
+from app.routers.category_router import category_router
 from app.routers.expenses import expense_router
+
 from app.config import settings
 
 @asynccontextmanager
@@ -19,15 +25,29 @@ async def lifespan(app: FastAPI):
 
 app=FastAPI(
     title=settings.app_name,
+    description="Asynchronous RESTful API for personal expense and category management built with FastAPI, SQLAlchemy 2.0, and PostgreSQL.",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
     lifespan=lifespan
 )
 
 
-@app.get("/")
-async def root():
+# Health Check Endpoint
+@app.get(
+    "/health",
+    status_code=status.HTTP_200_OK,
+    tags=["Health Check"],
+    summary="Check API status"
+)
+async def health_check():
     return {
-        "message": "MoneyMate API is running",
-        "environment": settings.app_env
+        "status": "healthy",
+        "service": "MoneyMate API",
+        "version": "1.0.0"
     }
 
+# Include Routers
+app.include_router(auth_router)
 app.include_router(expense_router)
+app.include_router(category_router)
