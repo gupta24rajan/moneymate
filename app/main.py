@@ -9,6 +9,7 @@ from app.database import engine,Base
 from app.routers.auth import auth_router
 from app.routers.category_router import category_router
 from app.routers.expenses import expense_router
+from app.routers import reports
 
 from app.config import settings
 
@@ -51,3 +52,4 @@ async def health_check():
 app.include_router(auth_router)
 app.include_router(expense_router)
 app.include_router(category_router)
+app.include_router(reports.router)
