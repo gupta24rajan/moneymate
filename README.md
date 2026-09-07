@@ -108,7 +108,7 @@ The token expiry is configured in code as 1 day.
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/gupta24rajan/moneymate.git expense-management
 cd expense-management
 ```
 
