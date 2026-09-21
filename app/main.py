@@ -11,6 +11,9 @@ from app.routers.category_router import category_router
 from app.routers.expenses import expense_router
 from app.routers import reports
 
+from ai.routers.categorization_router import router as categorization_router
+from ai.routers.insights_router import router as insights_router
+
 from app.config import settings
 
 @asynccontextmanager
@@ -53,3 +56,7 @@ app.include_router(auth_router)
 app.include_router(expense_router)
 app.include_router(category_router)
 app.include_router(reports.router)
+
+# Register AI Module Routers
+app.include_router(categorization_router)
+app.include_router(insights_router)
