@@ -13,6 +13,9 @@ from app.routers import reports
 
 from ai.routers.categorization_router import router as categorization_router
 from ai.routers.insights_router import router as insights_router
+from ai.routers.anomaly_router import router as anomaly_router
+from ai.routers.budget_router import router as budget_router
+from ai.routers.forecast_router import router as forecast_router
 
 from app.config import settings
 
@@ -60,3 +63,6 @@ app.include_router(reports.router)
 # Register AI Module Routers
 app.include_router(categorization_router)
 app.include_router(insights_router)
+app.include_router(anomaly_router)
+app.include_router(budget_router)
+app.include_router(forecast_router)
