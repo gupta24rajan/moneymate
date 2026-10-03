@@ -79,10 +79,17 @@ class LLMClient:
         )
         return (response.text or "").strip()
 
-    async def embed(self, text: str) -> list[float]:
+    async def embed(self, text: str, output_dimensionality: int | None = None) -> list[float]:
         """Text ki vector embeddings return karta hai."""
+        from google.genai import types
+
+        config_kwargs = {}
+        if output_dimensionality is not None:
+            config_kwargs["output_dimensionality"] = output_dimensionality
+        config = types.EmbedContentConfig(**config_kwargs) if config_kwargs else None
         response = await self.client.models.embed_content(
             model=self.embedding_model,
-            contents=text
+            contents=text,
+            config=config,
         )
         return response.embeddings[0].values

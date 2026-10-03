@@ -18,6 +18,11 @@ from app.schemas.expense import (
     PaginatedExpenseResponse,
 )
 
+try:
+    from ai.services.vectorstore.expense_vectorizer import expense_vectorizer
+except Exception:  # AI deps missing in some contexts
+    expense_vectorizer = None  # type: ignore
+
 
 class ExpenseService:
     def __init__(self, db: AsyncSession):
@@ -51,7 +56,21 @@ class ExpenseService:
             await self.db.commit()
             await self.db.refresh(expense)
             # Re-fetch with relationships loaded for serialization
-            return await self.get_expense_by_id(expense.id, user_id)
+            created = await self.get_expense_by_id(expense.id, user_id)
+            if expense_vectorizer is not None:
+                try:
+                    await expense_vectorizer.upsert_expense(
+                        expense_id=created.id,
+                        user_id=user_id,
+                        description=created.description,
+                        amount=created.amount,
+                        payment_method=created.payment_method,
+                        expense_date=created.expense_date,
+                        category_name=created.category.name if created.category else None,
+                    )
+                except Exception:
+                    pass
+            return created
         except SQLAlchemyError as err:
             await self.db.rollback()
             raise HTTPException(
@@ -185,7 +204,21 @@ class ExpenseService:
 
         try:
             await self.db.commit()
-            return await self.get_expense_by_id(expense_id, user_id)
+            updated = await self.get_expense_by_id(expense_id, user_id)
+            if expense_vectorizer is not None:
+                try:
+                    await expense_vectorizer.upsert_expense(
+                        expense_id=updated.id,
+                        user_id=user_id,
+                        description=updated.description,
+                        amount=updated.amount,
+                        payment_method=updated.payment_method,
+                        expense_date=updated.expense_date,
+                        category_name=updated.category.name if updated.category else None,
+                    )
+                except Exception:
+                    pass
+            return updated
         except SQLAlchemyError as err:
             await self.db.rollback()
             raise HTTPException(
@@ -196,9 +229,15 @@ class ExpenseService:
     async def delete_expense(self, expense_id: int, user_id: int) -> None:
         """Delete an expense record."""
         expense = await self.get_expense_by_id(expense_id, user_id)
+        exp_id = expense.id
         try:
             await self.db.delete(expense)
             await self.db.commit()
+            if expense_vectorizer is not None:
+                try:
+                    await expense_vectorizer.delete_expense(exp_id)
+                except Exception:
+                    pass
         except SQLAlchemyError as err:
             await self.db.rollback()
             raise HTTPException(

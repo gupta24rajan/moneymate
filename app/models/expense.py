@@ -22,13 +22,13 @@ class Expense(Base):
    # Foreign Keys
     user_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("users.id", ondelete="CASCADE"),
+        ForeignKey("users.id", name="fk_expenses_users", ondelete="CASCADE"),
         nullable=False,
         index=True
     )
     category_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("categories.id", ondelete="RESTRICT"),
+        ForeignKey("categories.id", name="fk_expenses_categories", ondelete="RESTRICT"),
         nullable=False,
         index=True
     )
